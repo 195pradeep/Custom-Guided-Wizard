@@ -1,5 +1,19 @@
 public with sharing class InvoiceGenerateHelper {
 
+    @AuraEnabled
+    public static Boolean createInvoiceLineItemRecords(List<Invoice_Line_Item__c> lineItems){
+        try {
+            System.debug('In Try - '+lineItems);
+            if(lineItems != null && lineItems.size() > 0) {
+                insert lineItems;
+                return True;
+            }
+            else 
+            throw new AuraHandledException('List Not Found');
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
 
     @AuraEnabled(cacheable=true)
     public static List<Invoice_Generator_Setting__mdt> getMetadataRecords(){

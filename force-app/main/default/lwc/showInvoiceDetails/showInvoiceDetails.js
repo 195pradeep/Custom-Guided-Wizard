@@ -1,9 +1,12 @@
 import { LightningElement, wire, track } from 'lwc';
-import { CurrentPageReference } from 'lightning/navigation';
+import { CurrentPageReference, NavigationMixin } from 'lightning/navigation';
 import createDynamicQuery from '@salesforce/apex/InvoiceGenerateHelper.createDynamicQuery';
-import getMetadataRecords from '@salesforce/apex/InvoiceGenerateHelper.getMetadataRecords'
+import getMetadataRecords from '@salesforce/apex/InvoiceGenerateHelper.getMetadataRecords';
+import createInvoiceLineItemRecords from '@salesforce/apex/InvoiceGenerateHelper.createInvoiceLineItemRecords';
+import { createRecord } from "lightning/uiRecordApi";
 
-export default class ShowInvoiceDetails extends LightningElement {
+
+export default class ShowInvoiceDetails extends NavigationMixin(LightningElement) {
 
     urlData;
     @track tableData = [];
@@ -54,9 +57,6 @@ export default class ShowInvoiceDetails extends LightningElement {
             if(this.tableData.length == 0) {
                 this.isDataAvailable = false;
             } 
-            
-    
-    
     
             this.childRelationship = urlParams[this.childRelation];
             
@@ -66,7 +66,7 @@ export default class ShowInvoiceDetails extends LightningElement {
         
     }
 
-
+    // Method to generate JSON Data
       async handleShowJson() {
         let childFieldsList = [];
         this.newchildFields.forEach((urlField) => {
@@ -91,5 +91,52 @@ export default class ShowInvoiceDetails extends LightningElement {
         this.jsonData = JSON.stringify(this.invoice, null, 2); 
 
     }
+
+    // Method to crearte Invoice and Invoice Line item Records
+    async handleInvoiceCreation() {
+        const invoiceCopy = {...this.invoice};
+
+        const invoiceDate = invoiceCopy.Invoice_Date__c;
+        const [day, month, year] = invoiceDate.split('/');
+        invoiceCopy.Invoice_Date__c = `${year}-${month}-${day}`;
+
+        const invoiceDueDate = invoiceCopy.Due_Date__c;
+        const [day2, month2, year2] = invoiceDueDate.split('/');
+        invoiceCopy.Due_Date__c = `${year2}-${month2}-${day2}`;
+        
+        var lineItems = invoiceCopy.lineItems;
+        delete invoiceCopy.lineItems;
+
+        const recordInput = { apiName: 'Invoice__c', fields : invoiceCopy };
+        // creating Invoice record here
+        createRecord(recordInput).then((record) => {
+            
+            console.log(record);
+            // Populating Invoice Id on Line item records before insertion
+            const invoiceLineItems = lineItems.map((lineItem) => {
+                return { ...lineItem, Invoice__c: record.id };
+            });
+            // Creating Invoice Line Item records
+            createInvoiceLineItemRecords({ lineItems: invoiceLineItems })
+            .then(() => {
+                console.log('Records inserted successfully');
+                // Navigation to Invoice record Page
+                this[NavigationMixin.Navigate]({
+                    type: 'standard__recordPage',
+                    attributes: {
+                        recordId: record.id,
+                        objectApiName: 'Invoice__c',
+                        actionName: 'view',
+                    },
+                });
+            })
+            .catch((error) => {
+                console.error('Error inserting records:', error);
+            });
+        }).catch(error => {
+            console.log(error);
+        });
+
+      }
 
 }

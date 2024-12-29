@@ -24,5 +24,9 @@
     </template>
     
     <lightning-button label="Show JSON" title="Non-primary action" onclick={handleShowJson} class="slds-m-around_medium"></lightning-button>
+    <template if:true={jsonData}>
+        <lightning-button label="Proceed to Create Invoice" title="Non-primary action" onclick={handleInvoiceCreation} class="slds-m-around_medium"></lightning-button>
+    </template>
+    
     
 </template>

@@ -19,3 +19,11 @@ Phase 2 :
 - Added one more card on component to show JSON data for which invoice will be created.
 - Created one Custom Metadata to store URL params field mapping with Invoice & Invoice Line Item object
 - Added one Apex Class - InvoiceGenerateHelper, which is querying the data by creating dynamic Query and also responsible for returning  custom metadata records.
+
+
+
+Phase 3 :
+- Used uiRecordApi to create Invoice Record 
+- Then created a method in InvoiceGenerateHelper to insert invoice line item records
+- Used the method to pass inovice line item records with it's parent it
+- After successfull insertion User is being redirected to newly created invoice record page
