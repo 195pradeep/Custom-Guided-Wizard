@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>To Capture the field mappings of URL params and Invoice/Invoice Line Item object</description>
+    <label>Invoice Generator Setting</label>
+    <pluralLabel>Invoice Generator Settings</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

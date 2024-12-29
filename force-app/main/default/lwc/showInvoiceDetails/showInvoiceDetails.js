@@ -1,61 +1,93 @@
 import { LightningElement, wire, track } from 'lwc';
 import { CurrentPageReference } from 'lightning/navigation';
+import createDynamicQuery from '@salesforce/apex/InvoiceGenerateHelper.createDynamicQuery';
+import getMetadataRecords from '@salesforce/apex/InvoiceGenerateHelper.getMetadataRecords';
 
 export default class ShowInvoiceDetails extends LightningElement {
 
-    
+    urlData;
     @track tableData = [];
+    @track jsonData = null;
+    @track recordWithChild;
+    @track invoice = {};
     
+    newinvoiceFields = [];
+    childRelation = 'c__child_relationship_name';
+    newchildFields = [];
+    childRelationship = '';
+    newinvoiceFieldMap = {};
     isDataAvailable = true;
     columns = [
         { label : 'key', fieldName: 'key', type: 'text'},
         { label : 'value', fieldName: 'value', type: 'text'}
     ];
 
+    @wire(getMetadataRecords,{})
+    getMetadata({data,error}) {
+        
+        if(data) {
+            data.forEach((record) => {
+                if(record.Invoice_Field__c != null) {
+                    this.newinvoiceFieldMap[record.URL_Param__c] = record.Invoice_Field__c;
+                    this.newinvoiceFields.push(record.URL_Param__c);
+                } else if (record.Invoice_Line_Item_Field__c != null) {
+                    
+                    this.newchildFields.push(record.URL_Param__c);
+                }
+            })
+
+        } else if (error) {
+            console.log(error);
+        }
+
+    }
+
     @wire(CurrentPageReference)
     getPageReference(currentPageReference) {
         if (currentPageReference) {
             const urlParams = currentPageReference.state;
+            this.urlData = {...urlParams};
             this.tableData = Object.keys(urlParams).map((key) => ({
                 key : key.substring(3),
                 value: urlParams[key],
             }));
             if(this.tableData.length == 0) {
                 this.isDataAvailable = false;
-            }
+            } 
+            
+            this.childRelationship = urlParams[this.childRelation];
+            
         } else {
             this.isDataAvailable = false;
         }
         
     }
 
-    /*
 
-    @wire(CurrentPageReference)
-    setValues(currentPageReference) {
-        if (currentPageReference.state.c__accountId) {
-            this.origin_record = currentPageReference.state.c__origin_record;
-            this.accountId = currentPageReference.state.c__accountId;
-            this.invoice_date = currentPageReference.state.c__invoice_date;
-            this.invoicde_due_date = currentPageReference.state.c__invoicde_due_date;
-            this.child_relationship_name = currentPageReference.state.c__child_relationship_name;
-            this.line_item_description = currentPageReference.state.c__line_item_description;
-            this.line_item_quantity = currentPageReference.state.c__line_item_quantity;
-            this.line_item_unit_price = currentPageReference.state.c__line_item_unit_price;
+      async handleShowJson() {
+        
+        let childFieldsList = [];
+        this.newchildFields.forEach((urlField) => {
+            childFieldsList.push(this.urlData[urlField]);
+        });
 
-            //c__origin_record=006NS00000PqQZVYA3&c__accountId=001NS00000rMhpOYAS&c__invoice_date=CloseDate&c__invoicde_due_date=CloseDate&c__child_relationship_name=OpportunityLineItems&c__line_item_description=Testing&c__line_item_quantity=10&c__line_item_unit_price=100
+        this.newinvoiceFields.forEach(field => {
+            this.invoice[this.newinvoiceFieldMap[field]] = this.urlData[field];
+        });
+        this.recordWithChild = await createDynamicQuery({ recordId: this.urlData['c__origin_record'], childRelation : this.urlData['c__child_relationship_name'], childFields : childFieldsList });
+        let childRecords = this.recordWithChild[0][this.childRelationship];
 
+        this.invoice.lineItems = [];
+        childRecords.forEach(record => {
+            let childrecord = {}
+            childFieldsList.forEach((value) =>
+                childrecord[value] = record[value]
+            );
+            this.invoice.lineItems.push(childrecord);
+        });
 
-            console.log('origin_record - ',this.origin_record);
-            console.log('accountId - ',this.accountId);
-            console.log('invoice_date - ',this.invoice_date);
-            console.log('invoicde_due_date - ',this.invoicde_due_date);
-            console.log('child_relationship_name - ',this.child_relationship_name);
-            console.log('line_item_description - ',this.line_item_description);
-            console.log('line_item_quantity - ',this.line_item_quantity);
-            console.log('line_item_unit_price - ',this.line_item_unit_price);
+        this.jsonData = JSON.stringify(this.invoice, null, 2); 
 
-            
-        }
-    };*/
+    }
+
 }

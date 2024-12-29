@@ -11,3 +11,10 @@ Phase 1 :
 - One LWC component has been used on Invoice Generator page.
 - On Opportunity object one button is created with the URL format given in requirement.
 - The button name is "Show Invoices"
+
+
+
+Phase 2 :
+- Added one button 'SHOW JSON' on component.
+- Added one more card on component to show JSON data for which invoice will be created.
+- Created one Custom Metadata to store URL params field mapping with Invoice & Invoice Line Item object

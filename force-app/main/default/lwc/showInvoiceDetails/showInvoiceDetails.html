@@ -14,5 +14,15 @@
             <p>No parameters found in the URL.</p>
         </template>
     </lightning-card>
+
+    <template if:true={jsonData}>
+        <lightning-card  title="JSON Data" class="slds-m-around_medium">
+            <div class="slds-m-around_medium">
+                <pre>{jsonData}</pre>
+            </div>
+        </lightning-card>
+    </template>
+    
+    <lightning-button label="Show JSON" title="Non-primary action" onclick={handleShowJson} class="slds-m-around_medium"></lightning-button>
     
 </template>
