@@ -1,7 +1,7 @@
 import { LightningElement, wire, track } from 'lwc';
 import { CurrentPageReference } from 'lightning/navigation';
 import createDynamicQuery from '@salesforce/apex/InvoiceGenerateHelper.createDynamicQuery';
-import getMetadataRecords from '@salesforce/apex/InvoiceGenerateHelper.getMetadataRecords';
+import getMetadataRecords from '@salesforce/apex/InvoiceGenerateHelper.getMetadataRecords'
 
 export default class ShowInvoiceDetails extends LightningElement {
 
@@ -10,12 +10,12 @@ export default class ShowInvoiceDetails extends LightningElement {
     @track jsonData = null;
     @track recordWithChild;
     @track invoice = {};
-    
     newinvoiceFields = [];
     childRelation = 'c__child_relationship_name';
     newchildFields = [];
     childRelationship = '';
     newinvoiceFieldMap = {};
+    newinvoiceLineItemMap = {};
     isDataAvailable = true;
     columns = [
         { label : 'key', fieldName: 'key', type: 'text'},
@@ -31,7 +31,7 @@ export default class ShowInvoiceDetails extends LightningElement {
                     this.newinvoiceFieldMap[record.URL_Param__c] = record.Invoice_Field__c;
                     this.newinvoiceFields.push(record.URL_Param__c);
                 } else if (record.Invoice_Line_Item_Field__c != null) {
-                    
+                    this.newinvoiceLineItemMap[record.URL_Param__c] = record.Invoice_Line_Item_Field__c;
                     this.newchildFields.push(record.URL_Param__c);
                 }
             })
@@ -55,6 +55,9 @@ export default class ShowInvoiceDetails extends LightningElement {
                 this.isDataAvailable = false;
             } 
             
+    
+    
+    
             this.childRelationship = urlParams[this.childRelation];
             
         } else {
@@ -65,7 +68,6 @@ export default class ShowInvoiceDetails extends LightningElement {
 
 
       async handleShowJson() {
-        
         let childFieldsList = [];
         this.newchildFields.forEach((urlField) => {
             childFieldsList.push(this.urlData[urlField]);
@@ -80,8 +82,8 @@ export default class ShowInvoiceDetails extends LightningElement {
         this.invoice.lineItems = [];
         childRecords.forEach(record => {
             let childrecord = {}
-            childFieldsList.forEach((value) =>
-                childrecord[value] = record[value]
+            this.newchildFields.forEach((urlField) =>
+                childrecord[this.newinvoiceLineItemMap[urlField]] = record[this.urlData[urlField]]
             );
             this.invoice.lineItems.push(childrecord);
         });

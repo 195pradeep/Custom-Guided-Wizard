@@ -18,3 +18,4 @@ Phase 2 :
 - Added one button 'SHOW JSON' on component.
 - Added one more card on component to show JSON data for which invoice will be created.
 - Created one Custom Metadata to store URL params field mapping with Invoice & Invoice Line Item object
+- Added one Apex Class - InvoiceGenerateHelper, which is querying the data by creating dynamic Query and also responsible for returning  custom metadata records.
